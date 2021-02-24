@@ -78,8 +78,8 @@ attrB_list    = [1,2,3,4,6,7,8,9,10,11]
 # The list of attributes to use for blocking (all must occur in the above
 # attribute lists)
 #
-blocking_attrA_list = [3,4]
-blocking_attrB_list = [3,4]
+blocking_attrA_list = [4,7]
+blocking_attrB_list = [4,7]
 
 # ******** In lab 4, explore different comparison functions for different  ****
 # ********           attributes                                            ****
@@ -122,45 +122,56 @@ loading_time = time.time() - start_time
 # -----------------------------------------------------------------------------
 # Step 2: Block the datasets
 
-start_time = time.time()
+def genericBlock (block_function = 'none', recA_dict = recA_dict, recB_dict = recB_dict, 
+                  blocking_attrA_list = blocking_attrA_list,
+                  blocking_attrB_list = blocking_attrB_list):
 
-# Select one blocking technique
+    start_time = time.time()
+    
+    # Select one blocking technique
+    
+    if block_function == 'none':
+        # No blocking (all records in one block)
+        #
+        resultA = blocking.noBlocking(recA_dict)
+        resultB = blocking.noBlocking(recB_dict)
 
-# No blocking (all records in one block)
-#
-blockA_dict = blocking.noBlocking(recA_dict)
-blockB_dict = blocking.noBlocking(recB_dict)
+    if block_function == 'attr':
+        # Simple attribute-based blocking
+        #
+        resultA = blocking.simpleBlocking(recA_dict, blocking_attrA_list)
+        resultB = blocking.simpleBlocking(recB_dict, blocking_attrB_list)
 
-# Simple attribute-based blocking
-#
-#blockA_dict = blocking.simpleBlocking(recA_dict, blocking_attrA_list)
-#blockB_dict = blocking.simpleBlocking(recB_dict, blocking_attrB_list)
+    if block_function == 'soundex':
+        # Phonetic (Soundex) based blocking
+        #
+        resultA = blocking.phoneticBlocking(recA_dict, blocking_attrA_list)
+        resultB = blocking.phoneticBlocking(recB_dict, blocking_attrB_list)
+    
+    if block_function == 'slk':
+        # Statistical linkage key (SLK-581) based blocking
+        #
+        fam_name_attr_ind = 3
+        giv_name_attr_ind = 1
+        dob_attr_ind      = 6
+        gender_attr_ind   = 4
+        
+        resultA = blocking.slkBlocking(recA_dict, fam_name_attr_ind, \
+                                          giv_name_attr_ind, dob_attr_ind, \
+                                          gender_attr_ind)
+        resultB = blocking.slkBlocking(recB_dict, fam_name_attr_ind, \
+                                          giv_name_attr_ind, dob_attr_ind, \
+                                          gender_attr_ind)
+    
+    block_time = time.time() - start_time
+    
+    # Print blocking statistics
+    #
+    blocking.printBlockStatistics(resultA, resultB)
+    
+    return resultA, resultB, block_time
 
-# Phonetic (Soundex) based blocking
-#
-#blockA_dict = blocking.phoneticBlocking(recA_dict, blocking_attrA_list)
-#blockB_dict = blocking.phoneticBlocking(recB_dict, blocking_attrB_list)
-
-# Statistical linkage key (SLK-581) based blocking
-#
-fam_name_attr_ind = 3
-giv_name_attr_ind = 1
-dob_attr_ind      = 6
-gender_attr_ind   = 4
-
-#blockA_dict = blocking.slkBlocking(recA_dict, fam_name_attr_ind, \
-#                                   giv_name_attr_ind, dob_attr_ind, \
-#                                   gender_attr_ind)
-#blockB_dict = blocking.slkBlocking(recB_dict, fam_name_attr_ind, \
-#                                   giv_name_attr_ind, dob_attr_ind, \
-#                                   gender_attr_ind)
-
-blocking_time = time.time() - start_time
-
-# Print blocking statistics
-#
-blocking.printBlockStatistics(blockA_dict, blockB_dict)
-
+blockA_dict, blockB_dict, blocking_time = genericBlock(block_function='attr')
 # -----------------------------------------------------------------------------
 # Step 3: Compare the candidate pairs
 
@@ -175,49 +186,54 @@ comparison_time = time.time() - start_time
 # -----------------------------------------------------------------------------
 # Step 4: Classify the candidate pairs
 
-start_time = time.time()
+def genericClassification(classification_function = 'exact', sim_vec_dict = sim_vec_dict,
+                          sim_threshold = None, min_sim_threshold = None, 
+                          weight_vec = None, true_match_set = true_match_set):
+    start_time = time.time()
 
-# Exact matching based classification
-#
-class_match_set, class_nonmatch_set = \
-             classification.exactClassify(sim_vec_dict)
+    if classification_function == 'exact':
+        # Exact matching based classification
+        class_match_set1, class_nonmatch_set1 = \
+                     classification.exactClassify(sim_vec_dict)
 
-# *********** In lab 5, explore different similarity threshold values *********
+    if classification_function == 'simthresh':
+        # Similarity threshold based classification
+        #
+        class_match_set1, class_nonmatch_set1 = \
+                    classification.thresholdClassify(sim_vec_dict, sim_threshold)
+    
+    if classification_function == 'minsim':
+        # Minimum similarity threshold based classification
+        #
+        class_match_set1, class_nonmatch_set1 = \
+                    classification.minThresholdClassify(sim_vec_dict,
+                                                        min_sim_threshold)
+    
+    if classification_function == 'weightsim':
+        # Weighted similarity threshold based classification
+        #
+        # weight_vec = [1.0] * len(approx_comp_funct_list)
+    
+        # Lower weights for middle name and state
+        #
+        # weight_vec = [2.0, 1.0, 2.0, 2.0, 2.0, 1.0]
+    
+        class_match_set1, class_nonmatch_set1 = \
+                    classification.weightedSimilarityClassify(sim_vec_dict,
+                                                              weight_vec,
+                                                              sim_threshold)
+    
+    if classification_function == 'dt':
+        # A supervised decision tree classifier
+        # 
+        class_match_set1, class_nonmatch_set1 = \
+                  classification.supervisedMLClassify(sim_vec_dict, true_match_set)
 
-# Similarity threshold based classification
-#
-#sim_threshold = 0.5
-#class_match_set, class_nonmatch_set = \
-#             classification.thresholdClassify(sim_vec_dict, sim_threshold)
+    class_time = time.time() - start_time
 
-# Minimum similarity threshold based classification
-#
-#min_sim_threshold = 0.5
-#class_match_set, class_nonmatch_set = \
-#             classification.minThresholdClassify(sim_vec_dict,
-#                                                 min_sim_threshold)
+    return class_match_set1, class_nonmatch_set1, class_time
 
-# *********** In lab 6, explore different weight vectors **********************
-
-# Weighted similarity threshold based classification
-#
-#weight_vec = [1.0] * len(approx_comp_funct_list)
-
-# Lower weights for middle name and state
-#
-#weight_vec = [2.0, 1.0, 2.0, 2.0, 2.0, 1.0]
-
-#class_match_set, class_nonmatch_set = \
-#             classification.weightedSimilarityClassify(sim_vec_dict,
-#                                                       weight_vec,
-#                                                       sim_threshold)
-
-# A supervised decision tree classifier
-#
-#class_match_set, class_nonmatch_set = \
-#           classification.supervisedMLClassify(sim_vec_dict, true_match_set)
-
-classification_time = time.time() - start_time
+class_match_set, class_nonmatch_set, classification_time = genericClassification('dt')
 
 # -----------------------------------------------------------------------------
 # Step 5: Evaluate the classification
