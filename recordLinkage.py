@@ -28,6 +28,8 @@ import pandas as pd
 from tqdm import tqdm
 import signal
 import os
+import itertools
+
 
 # =============================================================================
 # Variable names for loading datasets
@@ -56,37 +58,36 @@ truthfile_name = 'assignment-data/data_wrangling_rlgt.csv'
 rec_idA_col = 0
 rec_idB_col = 0
 
+# The list of attributes to be used either for blocking or linking
+#
+# For the example data sets used in COMP8430 data wrangling in 2020:
+#
+#  0: rec_id
+#  1: first_name
+#  2: middle_name
+#  3: last_name
+#  4: gender
+#  5: current_age
+#  6: birth_date
+#  7: street_address
+#  8: suburb
+#  9: postcode
+# 10: state
+# 11: phone
+# 12: email
 
-def main(blocking_fn, classification_fn, threshold, minthresh, weightvec):
+attrA_list = [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12]
+attrB_list = [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12]
 
-    # The list of attributes to be used either for blocking or linking
-    #
-    # For the example data sets used in COMP8430 data wrangling in 2020:
-    #
-    #  0: rec_id
-    #  1: first_name
-    #  2: middle_name
-    #  3: last_name
-    #  4: gender
-    #  5: current_age
-    #  6: birth_date
-    #  7: street_address
-    #  8: suburb
-    #  9: postcode
-    # 10: state
-    # 11: phone
-    # 12: email
 
-    attrA_list    = [1,2,3,4,6,7,8,9,10,11]
-    attrB_list    = [1,2,3,4,6,7,8,9,10,11]
+def main(blocking_fn, classification_fn, threshold, minthresh, weightvec, blocking_attrs):
 
     # ******** In lab 3, explore different attribute sets for blocking ************
 
     # The list of attributes to use for blocking (all must occur in the above
     # attribute lists)
-    #
-    blocking_attrA_list = [4,7]
-    blocking_attrB_list = [4,7]
+    blocking_attrA_list = [blocking_attrs]
+    blocking_attrB_list = [blocking_attrs]
 
     # ******** In lab 4, explore different comparison functions for different  ****
     # ********           attributes                                            ****
@@ -327,18 +328,23 @@ weight_vectors = [[2.0, 1.0, 2.0, 2.0, 2.0, 1.0], [1, 1, 1, 1, 1, 1]]
 
 results_list = []
 
-def main_iter(block, classif, threshold = None, minthresh = None, weightvec = None, timeout = 60):
+def main_iter(block, classif, threshold = None, minthresh = None, weightvec = None, blocking_attrs = [4,7], timeout = 60):
     # Set the signal handler and a 5-second alarm
     signal.signal(signal.SIGALRM, handler)
     signal.alarm(timeout)
     try:
-        return main(block, classif, threshold, minthresh, weightvec)
+        return main(block, classif, threshold, minthresh, weightvec, blocking_attrs)
     except TimeOutError:
         return {'blocking_fn': block, 'classification_fn': classif}
     signal.alarm(0)
 
 
 TIMEOUT = 10
+
+blocking_range = list(range(1, len(attrA_list)))
+blocking_possibilities = [list(itertools.combinations(blocking_range, x)) for x in blocking_range]
+blocking_possibilities = [item for sublist in blocking_possibilities for item in sublist]
+blocking_possibilities = [list(x) for x in blocking_possibilities]
 
 # TODO: Add index of input variables
 def tune_parametres(variables = []):
@@ -362,6 +368,9 @@ def tune_parametres(variables = []):
         weight_vectors = [[2.0, 1.0, 2.0, 2.0, 2.0, 1.0], [1, 1, 1, 1, 1, 1]]
     else:
         weight_vectors = [1, 1, 1, 1, 1, 1]
+
+    if 'blocking_attrs' in variables:
+        blocking_attrs =
 
     for block_option in tqdm(block_options):
         for class_option in class_options:
