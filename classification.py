@@ -26,7 +26,7 @@ def exactClassify(sim_vec_dict):
        (recA2, recB5) = [0.0, 1.0, 0.0, 1.0] = non-match
   """
 
-  print('Exact classification of %d record pairs' % (len(sim_vec_dict)))
+  # print('Exact classification of %d record pairs' % (len(sim_vec_dict)))
 
   class_match_set    = set()
   class_nonmatch_set = set()
@@ -42,9 +42,9 @@ def exactClassify(sim_vec_dict):
     else:
       class_nonmatch_set.add(rec_id_tuple)
 
-  print('  Classified %d record pairs as matches and %d as non-matches' % \
-        (len(class_match_set), len(class_nonmatch_set)))
-  print('')
+  # print('  Classified %d record pairs as matches and %d as non-matches' % \
+  #       (len(class_match_set), len(class_nonmatch_set)))
+  # print('')
 
   return class_match_set, class_nonmatch_set
 
@@ -65,9 +65,9 @@ def thresholdClassify(sim_vec_dict, sim_thres):
 
   assert sim_thres >= 0.0 and sim_thres <= 1.0, sim_thres
 
-  print('Similarity threshold based classification of %d record pairs' % \
-        (len(sim_vec_dict)))
-  print('  Classification similarity threshold: %.3f' % (sim_thres))
+  # print('Similarity threshold based classification of %d record pairs' % \
+  #       (len(sim_vec_dict)))
+  # print('  Classification similarity threshold: %.3f' % (sim_thres))
 
   class_match_set    = set()
   class_nonmatch_set = set()
@@ -84,9 +84,9 @@ def thresholdClassify(sim_vec_dict, sim_thres):
     else:
       class_nonmatch_set.add(rec_id_tuple)
 
-  print('  Classified %d record pairs as matches and %d as non-matches' % \
-        (len(class_match_set), len(class_nonmatch_set)))
-  print('')
+  # print('  Classified %d record pairs as matches and %d as non-matches' % \
+  #       (len(class_match_set), len(class_nonmatch_set)))
+  # print('')
 
   return class_match_set, class_nonmatch_set
 
@@ -108,9 +108,9 @@ def minThresholdClassify(sim_vec_dict, sim_thres):
 
   assert sim_thres >= 0.0 and sim_thres <= 1.0, sim_thres
 
-  print('Minimum similarity threshold based classification of ' + \
-        '%d record pairs' % (len(sim_vec_dict)))
-  print('  Classification similarity threshold: %.3f' % (sim_thres))
+  # print('Minimum similarity threshold based classification of ' + \
+  #       '%d record pairs' % (len(sim_vec_dict)))
+  # print('  Classification similarity threshold: %.3f' % (sim_thres))
 
   class_match_set    = set()
   class_nonmatch_set = set()
@@ -135,9 +135,9 @@ def minThresholdClassify(sim_vec_dict, sim_thres):
     else:
       class_nonmatch_set.add(rec_id_tuple)
 
-  print('  Classified %d record pairs as matches and %d as non-matches' % \
-        (len(class_match_set), len(class_nonmatch_set)))
-  print('')
+  # print('  Classified %d record pairs as matches and %d as non-matches' % \
+  #       (len(class_match_set), len(class_nonmatch_set)))
+  # print('')
 
   return class_match_set, class_nonmatch_set
 
@@ -166,10 +166,10 @@ def weightedSimilarityClassify(sim_vec_dict, weight_vec, sim_thres):
   first_sim_vec = list(sim_vec_dict.values())[0]
   assert len(weight_vec) == len(first_sim_vec), len(weight_vec)
 
-  print('Weighted similarity based classification of %d record pairs' % \
-        (len(sim_vec_dict)))
-  print('  Weight vector: %s'   % (str(weight_vec)))
-  print('  Classification similarity threshold: %.3f' % (sim_thres))
+  # print('Weighted similarity based classification of %d record pairs' % \
+  #       (len(sim_vec_dict)))
+  # print('  Weight vector: %s'   % (str(weight_vec)))
+  # print('  Classification similarity threshold: %.3f' % (sim_thres))
 
   class_match_set    = set()
   class_nonmatch_set = set()
@@ -196,9 +196,9 @@ def weightedSimilarityClassify(sim_vec_dict, weight_vec, sim_thres):
     else:
       class_nonmatch_set.add(rec_id_tuple)
 
-  print('  Classified %d record pairs as matches and %d as non-matches' % \
-        (len(class_match_set), len(class_nonmatch_set)))
-  print('')
+  # print('  Classified %d record pairs as matches and %d as non-matches' % \
+  #       (len(class_match_set), len(class_nonmatch_set)))
+  # print('')
 
   return class_match_set, class_nonmatch_set
 
@@ -244,8 +244,8 @@ def supervisedMLClassify(sim_vec_dict, true_match_set):
 
   import random
 
-  print('Supervised decision tree classification of %d record pairs' % \
-        (len(sim_vec_dict)))
+  # print('Supervised decision tree classification of %d record pairs' % \
+  #       (len(sim_vec_dict)))
 
   # Generate the training data sets (similarity vectors plus class labels
   # (match or non-match)
@@ -253,8 +253,8 @@ def supervisedMLClassify(sim_vec_dict, true_match_set):
   num_train_rec = len(sim_vec_dict)
   num_features =  len(list(sim_vec_dict.values())[0])
 
-  print('  Number of training records and features: %d / %d' % \
-        (num_train_rec, num_features))
+  # print('  Number of training records and features: %d / %d' % \
+  #       (num_train_rec, num_features))
 
   all_train_data =  numpy.zeros([num_train_rec, num_features])
   all_train_class = numpy.zeros(num_train_rec)
@@ -284,9 +284,9 @@ def supervisedMLClassify(sim_vec_dict, true_match_set):
   num_train_select = int(2./3 * num_all)  # Select 2/3 for training
   num_test_select =  num_all - num_train_select
 
-  print('  Number of positive and negative training records: %d / %d' % \
-        (num_pos, num_neg))
-  print('')
+  # print('  Number of positive and negative training records: %d / %d' % \
+  #       (num_pos, num_neg))
+  # print('')
 
   class_list = []  # List of the generated classifiers
 
@@ -334,8 +334,8 @@ def supervisedMLClassify(sim_vec_dict, true_match_set):
       else:
         num_wrong += 1
 
-    print('  Classifier %d gets %d correct and %d wrong' % \
-          (c, num_corr, num_wrong))
+    # print('  Classifier %d gets %d correct and %d wrong' % \
+    #       (c, num_corr, num_wrong))
 
     class_list.append(decision_tree)
 
@@ -363,11 +363,11 @@ def supervisedMLClassify(sim_vec_dict, true_match_set):
     else:
       class_nonmatch_set.add(rec_id_pair)
 
-  print('')
-
-  print('  Classified %d record pairs as matches and %d as non-matches' % \
-        (len(class_match_set), len(class_nonmatch_set)))
-  print('')
+  # print('')
+  #
+  # print('  Classified %d record pairs as matches and %d as non-matches' % \
+  #       (len(class_match_set), len(class_nonmatch_set)))
+  # print('')
 
   return class_match_set, class_nonmatch_set
 

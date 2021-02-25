@@ -26,6 +26,8 @@ import classification
 import evaluation
 import pandas as pd
 from tqdm import tqdm
+import signal
+import os
 
 # =============================================================================
 # Variable names for loading datasets
@@ -53,6 +55,7 @@ truthfile_name = 'assignment-data/data_wrangling_rlgt.csv'
 #
 rec_idA_col = 0
 rec_idB_col = 0
+
 
 def main(blocking_fn, classification_fn):
 
@@ -304,12 +307,30 @@ def main(blocking_fn, classification_fn):
     # Return results
     return dict
 
+class TimeOutError(Exception):
+    pass
+
+
+def handler(signum, frame):
+    print('Timed out!')
+    raise TimeOutError("Timed out!")
+
+
 block_options = ['none', 'attr', 'soundex', 'slk']
 class_options = ['exact', 'simthresh', 'minsim', 'weightsim', 'dt']
 
 results_list = []
 
+# TODO: Add index of input variables
 for block_option in tqdm(block_options):
     for class_option in tqdm(class_options):
-        results_list.append(main(block_option, class_option))
+        # Set the signal handler and a 5-second alarm
+        signal.signal(signal.SIGALRM, handler)
+        signal.alarm(60)
+        try:
+            results_list.append(main(block_option, class_option))
+        except TimeOutError:
+            results_list.append({})
+        signal.alarm(0)
+
 

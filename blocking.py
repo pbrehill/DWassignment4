@@ -13,10 +13,10 @@ def noBlocking(rec_dict):
        rec_dict : Dictionary that holds the record identifiers as keys and
                   corresponding list of record values
   """
-
-  print("Run 'no' blocking:")
-  print('  Number of records to be blocked: '+str(len(rec_dict)))
-  print('')
+  #
+  # print("Run 'no' blocking:")
+  # print('  Number of records to be blocked: '+str(len(rec_dict)))
+  # print('')
 
   rec_id_list = list(rec_dict.keys())
 
@@ -57,10 +57,10 @@ def simpleBlocking(rec_dict, blk_attr_list):
 
   block_dict = {}  # The dictionary with blocks to be generated and returned
 
-  print('Run simple blocking:')
-  print('  List of blocking key attributes: '+str(blk_attr_list))
-  print('  Number of records to be blocked: '+str(len(rec_dict)))
-  print('')
+  # print('Run simple blocking:')
+  # print('  List of blocking key attributes: '+str(blk_attr_list))
+  # print('  Number of records to be blocked: '+str(len(rec_dict)))
+  # print('')
 
   for (rec_id, rec_values) in rec_dict.items():
 
@@ -111,10 +111,10 @@ def phoneticBlocking(rec_dict, blk_attr_list):
 
   block_dict = {}  # The dictionary with blocks to be generated and returned
 
-  print('Run phonetic blocking:')
-  print('  List of blocking key attributes: '+str(blk_attr_list))
-  print('  Number of records to be blocked: '+str(len(rec_dict)))
-  print('')
+  # print('Run phonetic blocking:')
+  # print('  List of blocking key attributes: '+str(blk_attr_list))
+  # print('  Number of records to be blocked: '+str(len(rec_dict)))
+  # print('')
 
   for (rec_id, rec_values) in rec_dict.items():
 
@@ -219,9 +219,9 @@ def slkBlocking(rec_dict, fam_name_attr_ind, giv_name_attr_ind,
 
   block_dict = {}  # The dictionary with blocks to be generated and returned
 
-  print('Run SLK-581 blocking:')
-  print('  Number of records to be blocked: '+str(len(rec_dict)))
-  print('')
+  # print('Run SLK-581 blocking:')
+  # print('  Number of records to be blocked: '+str(len(rec_dict)))
+  # print('')
 
   for (rec_id, rec_values) in rec_dict.items():
 
@@ -323,7 +323,7 @@ def printBlockStatistics(blockA_dict, blockB_dict):
   """Calculate and print some basic statistics about the generated blocks
   """
 
-  print('Statistics of the generated blocks:')
+  # print('Statistics of the generated blocks:')
 
   numA_blocks = len(blockA_dict)
   numB_blocks = len(blockB_dict)
@@ -336,19 +336,19 @@ def printBlockStatistics(blockA_dict, blockB_dict):
   for rec_id_list in blockB_dict.values():  # Loop over all blocks
     block_sizeB_list.append(len(rec_id_list))
 
-  print('Dataset A number of blocks generated: %d' % (numA_blocks))
-  print('    Minimum block size: %d' % (min(block_sizeA_list)))
-  print('    Average block size: %.2f' % \
-        (float(sum(block_sizeA_list)) / len(block_sizeA_list)))
-  print('    Maximum block size: %d' % (max(block_sizeA_list)))
-  print('')
-
-  print('Dataset B number of blocks generated: %d' % (numB_blocks))
-  print('    Minimum block size: %d' % (min(block_sizeB_list)))
-  print('    Average block size: %.2f' % \
-        (float(sum(block_sizeB_list)) / len(block_sizeB_list)))
-  print('    Maximum block size: %d' % (max(block_sizeB_list)))
-  print('')
+  # print('Dataset A number of blocks generated: %d' % (numA_blocks))
+  # print('    Minimum block size: %d' % (min(block_sizeA_list)))
+  # print('    Average block size: %.2f' % \
+  #       (float(sum(block_sizeA_list)) / len(block_sizeA_list)))
+  # print('    Maximum block size: %d' % (max(block_sizeA_list)))
+  # print('')
+  #
+  # print('Dataset B number of blocks generated: %d' % (numB_blocks))
+  # print('    Minimum block size: %d' % (min(block_sizeB_list)))
+  # print('    Average block size: %.2f' % \
+  #       (float(sum(block_sizeB_list)) / len(block_sizeB_list)))
+  # print('    Maximum block size: %d' % (max(block_sizeB_list)))
+  # print('')
 
 # -----------------------------------------------------------------------------
 
