@@ -390,8 +390,8 @@ def compareBlocks(blockA_dict, blockB_dict, recA_dict, recB_dict, \
                              }
   """
 
-  print('Compare %d blocks from dataset A with %d blocks from dataset B' % \
-        (len(blockA_dict), len(blockB_dict)))
+  # print('Compare %d blocks from dataset A with %d blocks from dataset B' % \
+  #       (len(blockA_dict), len(blockB_dict)))
 
   sim_vec_dict = {}  # A dictionary where keys are record pairs and values
                      # lists of similarity values
@@ -427,8 +427,8 @@ def compareBlocks(blockA_dict, blockB_dict, recA_dict, recB_dict, \
           #
           sim_vec_dict[(rec_idA, rec_idB)] = sim_vec
 
-  print('  Compared %d record pairs' % (len(sim_vec_dict)))
-  print('')
+  # print('  Compared %d record pairs' % (len(sim_vec_dict)))
+  # print('')
 
   return sim_vec_dict
 

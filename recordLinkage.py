@@ -290,6 +290,8 @@ def main(blocking_fn, classification_fn):
     # print('Total runtime required for linkage: %.3f sec' % (linkage_time))
 
     # Export blocking metrics
+    dict['blocking_fn'] = blocking_fn
+    dict['classification_fn'] = classification_fn
     dict['num_comparisons'] = num_comparisons
     dict['all_comparisons'] = all_comparisons
     dict['cand_rec_id_pair_list'] = cand_rec_id_pair_list
@@ -326,7 +328,7 @@ for block_option in tqdm(block_options):
     for class_option in tqdm(class_options):
         # Set the signal handler and a 5-second alarm
         signal.signal(signal.SIGALRM, handler)
-        signal.alarm(60)
+        signal.alarm(180)
         try:
             results_list.append(main(block_option, class_option))
         except TimeOutError:
@@ -334,3 +336,4 @@ for block_option in tqdm(block_options):
         signal.alarm(0)
 
 
+results_df = pd.DataFrame(results_list)

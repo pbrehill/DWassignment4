@@ -34,16 +34,16 @@ def load_data_set(file_name, rec_id_col, use_attr_list, header_line):
 
   csv_reader = csv.reader(in_f)
 
-  print('Load data set from file: '+file_name)
+  # print('Load data set from file: '+file_name)
 
   if (header_line == True):
     header_list = next(csv_reader)
-    print('  Header line: '+str(header_list))
+    # print('  Header line: '+str(header_list))
 
-  print('  Record identifier attribute: '+str(header_list[rec_id_col]))
-  print('  Attributes to use:')
-  for attr_num in use_attr_list:
-    print('    '+header_list[attr_num])
+  # print('  Record identifier attribute: '+str(header_list[rec_id_col]))
+  # print('  Attributes to use:')
+  # for attr_num in use_attr_list:
+  #   print('    '+header_list[attr_num])
 
   rec_num =  0
   rec_dict = {}
@@ -74,7 +74,7 @@ def load_data_set(file_name, rec_id_col, use_attr_list, header_line):
           (rec_num - len(rec_dict)))
     print('       %d unique records' % (len(rec_dict)))
 
-  print('')
+  # print('')
 
   # Return the generated dictionary of records
   #
@@ -97,7 +97,7 @@ def load_truth_data(file_name):
 
   csv_reader = csv.reader(in_f)
 
-  print('Load truth data from file: '+file_name)
+  # print('Load truth data from file: '+file_name)
 
   truth_data_set = set()
 
@@ -111,8 +111,8 @@ def load_truth_data(file_name):
 
   in_f.close()
 
-  print('  Loaded %d true matching record pairs' % (len(truth_data_set)))
-  print('')
+  # print('  Loaded %d true matching record pairs' % (len(truth_data_set)))
+  # print('')
 
   return truth_data_set
 
