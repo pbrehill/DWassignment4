@@ -25,6 +25,7 @@ import comparison
 import classification
 import evaluation
 import pandas as pd
+from tqdm import tqdm
 
 # =============================================================================
 # Variable names for loading datasets
@@ -132,7 +133,6 @@ def main(blocking_fn, classification_fn):
         start_time = time.time()
 
         # Select one blocking technique
-
         if block_function == 'none':
             # No blocking (all records in one block)
             #
@@ -170,7 +170,7 @@ def main(blocking_fn, classification_fn):
 
         # Print blocking statistics
         #
-        blocking.printBlockStatistics(resultA, resultB)
+        # blocking.printBlockStatistics(resultA, resultB)
 
         return resultA, resultB, block_time
 
@@ -190,8 +190,8 @@ def main(blocking_fn, classification_fn):
     # Step 4: Classify the candidate pairs
 
     def genericClassification(classification_function = 'exact', sim_vec_dict = sim_vec_dict,
-                              sim_threshold = None, min_sim_threshold = None,
-                              weight_vec = None, true_match_set = true_match_set):
+                              sim_threshold = 0.5, min_sim_threshold = 0.5,
+                              weight_vec = [2.0, 1.0, 2.0, 2.0, 2.0, 1.0], true_match_set = true_match_set):
         start_time = time.time()
 
         if classification_function == 'exact':
@@ -241,6 +241,9 @@ def main(blocking_fn, classification_fn):
     # -----------------------------------------------------------------------------
     # Step 5: Evaluate the classification
 
+    # Initialise dictionary of results
+    dict = {}
+
     # Get the number of record pairs compared
     #
     num_comparisons = len(sim_vec_dict)
@@ -259,11 +262,6 @@ def main(blocking_fn, classification_fn):
     pc = evaluation.pairs_completeness(cand_rec_id_pair_list, true_match_set)
     pq = evaluation.pairs_quality(cand_rec_id_pair_list, true_match_set)
 
-    print('Blocking evaluation:')
-    print('  Reduction ratio:    %.3f' % (rr))
-    print('  Pairs completeness: %.3f' % (pc))
-    print('  Pairs quality:      %.3f' % (pq))
-    print('')
 
     # Linkage evaluation
     #
@@ -277,23 +275,41 @@ def main(blocking_fn, classification_fn):
     recall    =   evaluation.recall(linkage_result)
     fmeasure  =   evaluation.fmeasure(linkage_result)
 
-    print('Linkage evaluation:')
-    print('  Accuracy:    %.3f' % (accuracy))
-    print('  Precision:   %.3f' % (precision))
-    print('  Recall:      %.3f' % (recall))
-    print('  F-measure:   %.3f' % (fmeasure))
-    print('')
+    # print('Linkage evaluation:')
+    # print('  Accuracy:    %.3f' % (accuracy))
+    # print('  Precision:   %.3f' % (precision))
+    # print('  Recall:      %.3f' % (recall))
+    # print('  F-measure:   %.3f' % (fmeasure))
+    # print('')
 
     linkage_time = loading_time + blocking_time + comparison_time + \
                    classification_time
-    print('Total runtime required for linkage: %.3f sec' % (linkage_time))
+    # print('Total runtime required for linkage: %.3f sec' % (linkage_time))
 
     # Export blocking metrics
+    dict['num_comparisons'] = num_comparisons
+    dict['all_comparisons'] = all_comparisons
+    dict['cand_rec_id_pair_list'] = cand_rec_id_pair_list
+    dict['rr'] = rr
+    dict['pc'] = pc
+    dict['pq'] = pq
+    dict['blocking_time'] = blocking_time
+    dict['linkage_result'] = linkage_result
+    dict['accuracy'] = accuracy
+    dict['precision'] = precision
+    dict['recall'] = recall
+    dict['fmeasure'] = fmeasure
+    dict['linkage_time'] = linkage_time
 
-    # -----------------------------------------------------------------------------
+    # Return results
+    return dict
 
-    # End of program.
+block_options = ['none', 'attr', 'soundex', 'slk']
+class_options = ['exact', 'simthresh', 'minsim', 'weightsim', 'dt']
 
+results_list = []
 
-main('soundex', 'dt')
+for block_option in tqdm(block_options):
+    for class_option in tqdm(class_options):
+        results_list.append(main(block_option, class_option))
 
