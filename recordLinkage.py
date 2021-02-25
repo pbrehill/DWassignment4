@@ -338,7 +338,7 @@ def main_iter(block, classif, threshold = None, minthresh = None, weightvec = No
 for block_option in tqdm(block_options):
     for class_option in class_options:
         if class_option == 'simthresh':
-            for threshold in threshold:
+            for threshold in thresholds:
                 main_iter(block_option, class_option, threshold, timeout = 20)
 
 
