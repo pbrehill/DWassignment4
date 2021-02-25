@@ -33,9 +33,9 @@ def confusion_matrix(class_match_set, class_nonmatch_set, true_match_set,
      and TN.
   """
 
-  print('Calculating confusion matrix using %d classified matches, %d ' % \
-        (len(class_match_set), len(class_nonmatch_set)) + 'classified ' + \
-        'non-matches, and %d true matches' % (len(true_match_set)))
+  # print('Calculating confusion matrix using %d classified matches, %d ' % \
+  #       (len(class_match_set), len(class_nonmatch_set)) + 'classified ' + \
+  #       'non-matches, and %d true matches' % (len(true_match_set)))
 
   num_tp = 0  # number of true positives
   num_fp = 0  # number of false positives
@@ -72,8 +72,8 @@ def confusion_matrix(class_match_set, class_nonmatch_set, true_match_set,
 
   num_tn = all_comparisons - num_tp - num_fp - num_fn
 
-  print('  TP=%s, FP=%d, FN=%d, TN=%d' % (num_tp, num_fp, num_fn, num_tn))
-  print('')
+  # print('  TP=%s, FP=%d, FN=%d, TN=%d' % (num_tp, num_fp, num_fn, num_tn))
+  # print('')
 
   return [num_tp, num_fp, num_fn, num_tn]
 

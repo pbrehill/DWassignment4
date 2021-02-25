@@ -57,7 +57,7 @@ rec_idA_col = 0
 rec_idB_col = 0
 
 
-def main(blocking_fn, classification_fn):
+def main(blocking_fn, classification_fn, threshold, minthresh, weightvec):
 
     # The list of attributes to be used either for blocking or linking
     #
@@ -320,20 +320,27 @@ def handler(signum, frame):
 
 block_options = ['none', 'attr', 'soundex', 'slk']
 class_options = ['exact', 'simthresh', 'minsim', 'weightsim', 'dt']
+thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
 results_list = []
 
+def main_iter(block, classif, threshold = None, minthresh = None, weightvec = None, timeout = 60):
+    # Set the signal handler and a 5-second alarm
+    signal.signal(signal.SIGALRM, handler)
+    signal.alarm(timeout)
+    try:
+        return main(block, classif, threshold, minthresh, weightvec)
+    except TimeOutError:
+        return {'blocking_fn': block, 'classification_fn': classif}
+    signal.alarm(0)
+
 # TODO: Add index of input variables
 for block_option in tqdm(block_options):
-    for class_option in tqdm(class_options):
-        # Set the signal handler and a 5-second alarm
-        signal.signal(signal.SIGALRM, handler)
-        signal.alarm(180)
-        try:
-            results_list.append(main(block_option, class_option))
-        except TimeOutError:
-            results_list.append({})
-        signal.alarm(0)
+    for class_option in class_options:
+        if class_option == 'simthresh':
+            for threshold in threshold:
+                main_iter(block_option, class_option, threshold, timeout = 20)
+
 
 
 results_df = pd.DataFrame(results_list)
