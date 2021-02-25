@@ -292,14 +292,17 @@ def main(blocking_fn, classification_fn, threshold, minthresh, weightvec):
     # Export blocking metrics
     dict['blocking_fn'] = blocking_fn
     dict['classification_fn'] = classification_fn
+    dict['threshold'] = threshold
+    dict['min_thresh'] = minthresh
+    dict['weight_vec'] = weightvec
     dict['num_comparisons'] = num_comparisons
     dict['all_comparisons'] = all_comparisons
-    dict['cand_rec_id_pair_list'] = cand_rec_id_pair_list
+    # dict['cand_rec_id_pair_list'] = cand_rec_id_pair_list
     dict['rr'] = rr
     dict['pc'] = pc
     dict['pq'] = pq
     dict['blocking_time'] = blocking_time
-    dict['linkage_result'] = linkage_result
+    # dict['linkage_result'] = linkage_result
     dict['accuracy'] = accuracy
     dict['precision'] = precision
     dict['recall'] = recall
@@ -313,7 +316,7 @@ class TimeOutError(Exception):
     pass
 
 
-def handler(signum, frame):
+def handler(sig = None, frame = None):
     print('Timed out!')
     raise TimeOutError("Timed out!")
 
@@ -321,6 +324,7 @@ def handler(signum, frame):
 block_options = ['none', 'attr', 'soundex', 'slk']
 class_options = ['exact', 'simthresh', 'minsim', 'weightsim', 'dt']
 thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+weight_vectors = [[2.0, 1.0, 2.0, 2.0, 2.0, 1.0], [1, 1, 1, 1, 1, 1]]
 
 results_list = []
 
@@ -334,12 +338,28 @@ def main_iter(block, classif, threshold = None, minthresh = None, weightvec = No
         return {'blocking_fn': block, 'classification_fn': classif}
     signal.alarm(0)
 
+
+TIMEOUT = 10
+
 # TODO: Add index of input variables
 for block_option in tqdm(block_options):
     for class_option in class_options:
         if class_option == 'simthresh':
             for threshold in thresholds:
-                main_iter(block_option, class_option, threshold, timeout = 20)
+                results_list.append(main_iter(block_option, class_option, threshold, timeout = TIMEOUT))
+
+        elif class_option == 'minsim':
+            for threshold in thresholds:
+                results_list.append(main_iter(block_option, class_option, minthresh=threshold, timeout = TIMEOUT))
+
+        elif class_option == 'weightsim':
+            for threshold in thresholds:
+                for weight_vector in weight_vectors:
+                    results_list.append(main_iter(block_option, class_option, threshold, weightvec=weight_vector, timeout = TIMEOUT))
+
+        else:
+            results_list.append(main_iter(block_option, class_option, timeout=TIMEOUT))
+
 
 
 
