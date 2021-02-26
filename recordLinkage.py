@@ -323,7 +323,7 @@ def handler(sig = None, frame = None):
     raise TimeOutError("Timed out!")
 
 
-block_options = ['none', 'attr', 'soundex', 'slk']
+block_options = ['attr', 'soundex']
 class_options = ['exact', 'simthresh', 'minsim', 'weightsim', 'dt']
 thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 weight_vectors = [[2.0, 1.0, 2.0, 2.0, 2.0, 1.0], [1, 1, 1, 1, 1, 1]]
@@ -341,7 +341,7 @@ def main_iter(block, classif, threshold = None, minthresh = None, weightvec = No
     signal.alarm(0)
 
 
-TIMEOUT = 10
+TIMEOUT = 120
 
 blocking_range = list(range(1, len(attrA_list) + 1))
 blocking_possibilities = [list(itertools.combinations(blocking_range, x)) for x in blocking_range]
@@ -357,14 +357,15 @@ def tune_parametres(variables = variables_to_vary):
 
     # Set variables for iteration
     if 'blocking' in variables:
-        block_options = ['none', 'attr', 'soundex', 'slk']
+        # Excluding no for computational reasons add
+        block_options = ['attr', 'soundex', 'slk']
     else:
-        block_options = ['attr']
+        block_options = ['slk']
 
     if 'classification' in variables:
         class_options = ['exact', 'simthresh', 'minsim', 'weightsim', 'dt']
     else:
-        class_options = ['simthresh']
+        class_options = ['exact']
 
     if 'thresholds' in variables:
         thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
@@ -374,7 +375,7 @@ def tune_parametres(variables = variables_to_vary):
     if 'weighted' in variables:
         weight_vectors = [[2.0, 1.0, 2.0, 2.0, 2.0, 1.0], [1, 1, 1, 1, 1, 1]]
     else:
-        weight_vectors = [1, 1, 1, 1, 1, 1]
+        weight_vectors = [[1, 1, 1, 1, 1, 1]]
 
     if 'blocking_attrs' in variables:
         blocking_attrs = blocking_possibilities
@@ -383,25 +384,50 @@ def tune_parametres(variables = variables_to_vary):
 
     for block_option in tqdm(block_options):
         for class_option in class_options:
-            for blocking_attr in blocking_attrs:
+            if block_option == 'attr' or block_option == 'soundex':
+                # Had to repeat code here, a bit messy
+                for blocking_attr in tqdm(blocking_attrs):
+                    if class_option == 'simthresh':
+                        for threshold in thresholds:
+                            results_list.append(main_iter(block_option, class_option, threshold, blocking_attrs = blocking_attr, timeout = TIMEOUT))
+
+                    elif class_option == 'minsim':
+                        for threshold in thresholds:
+                            results_list.append(main_iter(block_option, class_option, minthresh=threshold, blocking_attrs = blocking_attr, timeout = TIMEOUT))
+
+                    elif class_option == 'weightsim':
+                        for threshold in thresholds:
+                            for weight_vector in weight_vectors:
+                                results_list.append(main_iter(block_option, class_option, threshold, weightvec=weight_vector, blocking_attrs = blocking_attr, timeout = TIMEOUT))
+
+                    else:
+                        results_list.append(main_iter(block_option, class_option, blocking_attrs = blocking_attr, timeout=TIMEOUT))
+            else:
                 if class_option == 'simthresh':
                     for threshold in thresholds:
-                        results_list.append(main_iter(block_option, class_option, threshold, blocking_attrs = blocking_attr, timeout = TIMEOUT))
+                        results_list.append(
+                            main_iter(block_option, class_option, threshold, blocking_attrs=None,
+                                      timeout=TIMEOUT))
 
                 elif class_option == 'minsim':
                     for threshold in thresholds:
-                        results_list.append(main_iter(block_option, class_option, minthresh=threshold, blocking_attrs = blocking_attr, timeout = TIMEOUT))
+                        results_list.append(
+                            main_iter(block_option, class_option, minthresh=threshold, blocking_attrs=None,
+                                      timeout=TIMEOUT))
 
                 elif class_option == 'weightsim':
                     for threshold in thresholds:
                         for weight_vector in weight_vectors:
-                            results_list.append(main_iter(block_option, class_option, threshold, weightvec=weight_vector, blocking_attrs = blocking_attr, timeout = TIMEOUT))
+                            results_list.append(
+                                main_iter(block_option, class_option, threshold, weightvec=weight_vector,
+                                          blocking_attrs=None, timeout=TIMEOUT))
 
                 else:
-                    results_list.append(main_iter(block_option, class_option, blocking_attrs = blocking_attr, timeout=TIMEOUT))
+                    results_list.append(
+                        main_iter(block_option, class_option, blocking_attrs=None, timeout=TIMEOUT))
 
     return results_list
 
 results = tune_parametres()
 results_df = pd.DataFrame(results_list)
-results_df.to_csv('results.csv')
+results_df.to_csv('-'.join(sys.argv) + '.csv')
