@@ -17,11 +17,15 @@ included_attrs <- c(' 1,', ' 2,', ' 3,', ' 4,', ' 5,', ' 6,', ' 7,', ' 8,', ' 9,
     set_names(.,.) %>%
     map_df(~str_detect(attrsblocking_df$blocking_attrs_re, .x))
 
-names(included_attrs) <- 1:11
+included_attrs[is.na(included_attrs)] <- FALSE
+
+names(included_attrs) <- as.character(1:11)
 
 combined_df <- bind_cols(included_attrs, attrsblocking_df)
 
-# means <- names(included_attrs) %>%
-#     map_df(~included_attrs %>%
-#         filter(.x) %>%
-#         # summarise_all(mean, na.rm = TRUE))
+means <- 1:11 %>%
+    map_df(~attrsblocking_df[included_attrs[.x] %>% pull() ,] %>%
+        summarise_if(is.numeric, mean, na.rm = TRUE))
+
+print(head(means))
+write.csv(means, 'mean_by_attribute.csv')

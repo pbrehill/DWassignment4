@@ -380,7 +380,7 @@ def tune_parametres(variables = variables_to_vary):
     if 'blocking_attrs' in variables:
         blocking_attrs = blocking_possibilities
     else:
-        blocking_attrs = [[4, 7]]
+        blocking_attrs = [[3, 7, 8]]
 
     for block_option in tqdm(block_options):
         for class_option in class_options:
