@@ -379,7 +379,7 @@ def tune_parametres(variables = variables_to_vary, random = False):
     if 'classification' in variables:
         class_options = ['exact', 'simthresh', 'minsim', 'weightsim', 'dt']
     else:
-        class_options = ['minsim']
+        class_options = ['dt']
 
     if 'thresholds' in variables:
         thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
@@ -399,15 +399,16 @@ def tune_parametres(variables = variables_to_vary, random = False):
     if 'comparison' in variables:
         func_list = comparison_funcs
     else:
-        func_list = [[comparison.edit_dist_sim_comp] * 6]
+        func_list = [[comparison.bag_dist_sim_comp, comparison.jaro_winkler_comp, comparison.jaro_winkler_comp,
+                      comparison.bag_dist_sim_comp, comparison.bag_dist_sim_comp, comparison.bag_dist_sim_comp]]
 
 
     for block_option in block_options:
-        for class_option in class_options:
-            for func in tqdm(func_list):
+        for class_option in tqdm(class_options):
+            for func in func_list:
                 if block_option == 'attr' or block_option == 'soundex':
                     # Had to repeat code here, a bit messy
-                    for blocking_attr in tqdm(blocking_attrs):
+                    for blocking_attr in blocking_attrs:
                         if class_option == 'simthresh':
                             for threshold in thresholds:
                                 results_list.append(main_iter(block_option, class_option, threshold,
