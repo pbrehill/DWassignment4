@@ -81,7 +81,7 @@ attrA_list = [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12]
 attrB_list = [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12]
 
 
-def main(blocking_fn, classification_fn, threshold, minthresh, weightvec, blocking_attrs):
+def main(blocking_fn, classification_fn, threshold, minthresh, weightvec, blocking_attrs, func_list):
 
     # ******** In lab 3, explore different attribute sets for blocking ************
 
@@ -103,12 +103,12 @@ def main(blocking_fn, classification_fn, threshold, minthresh, weightvec, blocki
                              (comparison.exact_comp,10,10),  # State
                              ]
 
-    approx_comp_funct_list = [(comparison.jaccard_comp, 1, 1),        # First name
-                              (comparison.dice_comp, 2, 2),           # Middle name
-                              (comparison.jaro_winkler_comp, 3, 3),   # Last name
-                              (comparison.bag_dist_sim_comp, 7, 7),   # Address
-                              (comparison.edit_dist_sim_comp, 8, 8),  # Suburb
-                              (comparison.exact_comp,10,10),          # State
+    approx_comp_funct_list = [(func_list[0], 1, 1),        # First name
+                              (func_list[1], 2, 2),           # Middle name
+                              (func_list[2], 3, 3),   # Last name
+                              (func_list[3], 7, 7),   # Address
+                              (func_list[4], 8, 8),  # Suburb
+                              (func_list[5],10,10),          # State
                              ]
 
     # =============================================================================
@@ -298,6 +298,7 @@ def main(blocking_fn, classification_fn, threshold, minthresh, weightvec, blocki
     dict['min_thresh'] = minthresh
     dict['weight_vec'] = weightvec
     dict['blocking_attrs'] = blocking_attrs
+    dict['comp_funcs'] = func_list
     dict['num_comparisons'] = num_comparisons
     dict['all_comparisons'] = all_comparisons
     # dict['cand_rec_id_pair_list'] = cand_rec_id_pair_list
@@ -330,12 +331,13 @@ weight_vectors = [[2.0, 1.0, 2.0, 2.0, 2.0, 1.0], [1, 1, 1, 1, 1, 1]]
 
 results_list = []
 
-def main_iter(block, classif, threshold = None, minthresh = None, weightvec = None, blocking_attrs = [4,7], timeout = 60):
+def main_iter(block, classif, threshold = None, minthresh = None, weightvec = None, blocking_attrs = [4,7],
+              func_list = [comparison.exact_comp] * 6, timeout = 60):
     # Set the signal handler and a 5-second alarm
     signal.signal(signal.SIGALRM, handler)
     signal.alarm(timeout)
     try:
-        return main(block, classif, threshold, minthresh, weightvec, blocking_attrs)
+        return main(block, classif, threshold, minthresh, weightvec, blocking_attrs, func_list)
     except TimeOutError:
         return {'blocking_fn': block, 'classification_fn': classif}
     signal.alarm(0)
@@ -343,15 +345,27 @@ def main_iter(block, classif, threshold = None, minthresh = None, weightvec = No
 
 TIMEOUT = 120
 
+# Blocking possibilities
 blocking_range = list(range(1, len(attrA_list) + 1))
 blocking_possibilities = [list(itertools.combinations(blocking_range, x)) for x in blocking_range]
 blocking_possibilities = [item for sublist in blocking_possibilities for item in sublist]
 blocking_possibilities = [list(x) for x in blocking_possibilities]
 
+# Comparison function possibilities
+y = [comparison.jaccard_comp,
+     comparison.dice_comp,
+     comparison.jaro_winkler_comp,
+     comparison.bag_dist_sim_comp,
+     comparison.edit_dist_sim_comp,
+     comparison.exact_comp]
+
+comparison_funcs = list(itertools.product(y, repeat=6))
+
+# Clean terminal inputs
 variables_to_vary = sys.argv[1:]
 
 # TODO: Add index of input variables
-def tune_parametres(variables = variables_to_vary):
+def tune_parametres(variables = variables_to_vary, random = False):
     # Print args
     print(variables_to_vary)
 
@@ -360,12 +374,12 @@ def tune_parametres(variables = variables_to_vary):
         # Excluding no for computational reasons add
         block_options = ['attr', 'soundex', 'slk']
     else:
-        block_options = ['slk']
+        block_options = ['soundex']
 
     if 'classification' in variables:
         class_options = ['exact', 'simthresh', 'minsim', 'weightsim', 'dt']
     else:
-        class_options = ['exact']
+        class_options = ['minsim']
 
     if 'thresholds' in variables:
         thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
@@ -382,49 +396,61 @@ def tune_parametres(variables = variables_to_vary):
     else:
         blocking_attrs = [[3, 7, 8]]
 
-    for block_option in tqdm(block_options):
+    if 'comparison' in variables:
+        func_list = comparison_funcs
+    else:
+        func_list = [[comparison.edit_dist_sim_comp] * 6]
+
+
+    for block_option in block_options:
         for class_option in class_options:
-            if block_option == 'attr' or block_option == 'soundex':
-                # Had to repeat code here, a bit messy
-                for blocking_attr in tqdm(blocking_attrs):
+            for func in tqdm(func_list):
+                if block_option == 'attr' or block_option == 'soundex':
+                    # Had to repeat code here, a bit messy
+                    for blocking_attr in tqdm(blocking_attrs):
+                        if class_option == 'simthresh':
+                            for threshold in thresholds:
+                                results_list.append(main_iter(block_option, class_option, threshold,
+                                                              blocking_attrs = blocking_attr, func_list=func, timeout = TIMEOUT))
+
+                        elif class_option == 'minsim':
+                            for threshold in thresholds:
+                                results_list.append(main_iter(block_option, class_option, minthresh=threshold,
+                                                              blocking_attrs = blocking_attr, func_list=func, timeout = TIMEOUT))
+
+                        elif class_option == 'weightsim':
+                            for threshold in thresholds:
+                                for weight_vector in weight_vectors:
+                                    results_list.append(main_iter(block_option, class_option, threshold,
+                                                                  weightvec=weight_vector, blocking_attrs = blocking_attr,
+                                                                  func_list=func, timeout = TIMEOUT))
+
+                        else:
+                            results_list.append(main_iter(block_option, class_option, blocking_attrs = blocking_attr,
+                                                          func_list=func, timeout=TIMEOUT))
+                else:
                     if class_option == 'simthresh':
                         for threshold in thresholds:
-                            results_list.append(main_iter(block_option, class_option, threshold, blocking_attrs = blocking_attr, timeout = TIMEOUT))
+                            results_list.append(
+                                main_iter(block_option, class_option, threshold, blocking_attrs=None, func_list=func,
+                                          timeout=TIMEOUT))
 
                     elif class_option == 'minsim':
                         for threshold in thresholds:
-                            results_list.append(main_iter(block_option, class_option, minthresh=threshold, blocking_attrs = blocking_attr, timeout = TIMEOUT))
+                            results_list.append(
+                                main_iter(block_option, class_option, minthresh=threshold, blocking_attrs=None,
+                                          func_list=func, timeout=TIMEOUT))
 
                     elif class_option == 'weightsim':
                         for threshold in thresholds:
                             for weight_vector in weight_vectors:
-                                results_list.append(main_iter(block_option, class_option, threshold, weightvec=weight_vector, blocking_attrs = blocking_attr, timeout = TIMEOUT))
+                                results_list.append(
+                                    main_iter(block_option, class_option, threshold, weightvec=weight_vector,
+                                              blocking_attrs=None, func_list=func, timeout=TIMEOUT))
 
                     else:
-                        results_list.append(main_iter(block_option, class_option, blocking_attrs = blocking_attr, timeout=TIMEOUT))
-            else:
-                if class_option == 'simthresh':
-                    for threshold in thresholds:
                         results_list.append(
-                            main_iter(block_option, class_option, threshold, blocking_attrs=None,
-                                      timeout=TIMEOUT))
-
-                elif class_option == 'minsim':
-                    for threshold in thresholds:
-                        results_list.append(
-                            main_iter(block_option, class_option, minthresh=threshold, blocking_attrs=None,
-                                      timeout=TIMEOUT))
-
-                elif class_option == 'weightsim':
-                    for threshold in thresholds:
-                        for weight_vector in weight_vectors:
-                            results_list.append(
-                                main_iter(block_option, class_option, threshold, weightvec=weight_vector,
-                                          blocking_attrs=None, timeout=TIMEOUT))
-
-                else:
-                    results_list.append(
-                        main_iter(block_option, class_option, blocking_attrs=None, timeout=TIMEOUT))
+                            main_iter(block_option, class_option, blocking_attrs=None, func_list=func, timeout=TIMEOUT))
 
     return results_list
 
