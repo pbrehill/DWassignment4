@@ -52,9 +52,11 @@ count_appropriate <- function (df) {
     results <- c(first_name, middle_name, last_name, current_age, birth_date, postcode, state, phone, email)
     names(results) <- c('first_name', 'middle_name', 'last_name', 'current_age', 'birth_date', 'postcode', 'state', 'phone', 'email')
 
+    results
 }
 
 df_appropriates <- map(df_ls, ~count_appropriate(.x))
+df_appropriates <- data.frame(df_appropriates)
 print(df_appropriates)
 
 # print(count_appropriate(df1))
