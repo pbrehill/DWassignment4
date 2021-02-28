@@ -15,10 +15,12 @@ df_ls <- list(df1, df2)
 blanks_count <- df_ls %>%
     map(function (x) {
         x %>%
-            map(function (y) {
+            map_int(function (y) {
                 sum(is.na(y))
             })
     })
+
+blanks_count_df <- data.frame(blanks_count)
 
 valid_name <- function (x) map_lgl(x, ~is.character(.x) & nchar(.x) > 1)
 valid_age <- function (x) map_lgl(x, ~is.numeric(.x) & .x > -1 & .x < 150)
