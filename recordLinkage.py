@@ -24,6 +24,7 @@ import blocking
 import comparison
 import classification
 import evaluation
+import saveLinkResult
 import pandas as pd
 from tqdm import tqdm
 import signal
@@ -81,7 +82,7 @@ attrA_list = [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12]
 attrB_list = [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12]
 
 
-def main(blocking_fn, classification_fn, threshold, minthresh, weightvec, blocking_attrs, func_list):
+def main(blocking_fn, classification_fn, threshold, minthresh, weightvec, blocking_attrs, func_list, save = False):
 
     # ******** In lab 3, explore different attribute sets for blocking ************
 
@@ -195,8 +196,8 @@ def main(blocking_fn, classification_fn, threshold, minthresh, weightvec, blocki
     # Step 4: Classify the candidate pairs
 
     def genericClassification(classification_function = 'exact', sim_vec_dict = sim_vec_dict,
-                              sim_threshold = 0.5, min_sim_threshold = 0.5,
-                              weight_vec = [2.0, 1.0, 2.0, 2.0, 2.0, 1.0], true_match_set = true_match_set):
+                              sim_threshold = threshold, min_sim_threshold = minthresh,
+                              weight_vec = weightvec, true_match_set = true_match_set):
         start_time = time.time()
 
         if classification_function == 'exact':
@@ -240,6 +241,8 @@ def main(blocking_fn, classification_fn, threshold, minthresh, weightvec, blocki
         class_time = time.time() - start_time
 
         return class_match_set1, class_nonmatch_set1, class_time
+
+    threshold = minthresh
 
     class_match_set, class_nonmatch_set, classification_time = genericClassification(classification_fn)
 
@@ -313,6 +316,10 @@ def main(blocking_fn, classification_fn, threshold, minthresh, weightvec, blocki
     dict['fmeasure'] = fmeasure
     dict['linkage_time'] = linkage_time
 
+    # Save results
+    if save:
+        saveLinkResult.save_linkage_set('final_results.txt', class_match_set)
+
     # Return results
     return dict
 
@@ -331,7 +338,7 @@ weight_vectors = [[2.0, 1.0, 2.0, 2.0, 2.0, 1.0], [1, 1, 1, 1, 1, 1]]
 
 results_list = []
 
-def main_iter(block, classif, threshold = None, minthresh = None, weightvec = None, blocking_attrs = [4,7],
+def main_iter(block, classif, threshold = 0.5, minthresh = 0.5, weightvec = [1, 1, 1, 1, 1, 1], blocking_attrs = [4,7],
               func_list = [comparison.exact_comp] * 6, timeout = 60):
     # Set the signal handler and a 5-second alarm
     signal.signal(signal.SIGALRM, handler)
@@ -410,19 +417,19 @@ def tune_parametres(variables = variables_to_vary, random = False):
                     # Had to repeat code here, a bit messy
                     for blocking_attr in blocking_attrs:
                         if class_option == 'simthresh':
-                            for threshold in thresholds:
-                                results_list.append(main_iter(block_option, class_option, threshold,
+                            for threshold1 in thresholds:
+                                results_list.append(main_iter(block_option, class_option, threshold1,
                                                               blocking_attrs = blocking_attr, func_list=func, timeout = TIMEOUT))
 
                         elif class_option == 'minsim':
-                            for threshold in thresholds:
-                                results_list.append(main_iter(block_option, class_option, minthresh=threshold,
+                            for threshold1 in thresholds:
+                                results_list.append(main_iter(block_option, class_option, threshold1, minthresh=threshold1,
                                                               blocking_attrs = blocking_attr, func_list=func, timeout = TIMEOUT))
 
                         elif class_option == 'weightsim':
-                            for threshold in thresholds:
+                            for threshold1 in thresholds:
                                 for weight_vector in weight_vectors:
-                                    results_list.append(main_iter(block_option, class_option, threshold,
+                                    results_list.append(main_iter(block_option, class_option, threshold1,
                                                                   weightvec=weight_vector, blocking_attrs = blocking_attr,
                                                                   func_list=func, timeout = TIMEOUT))
 
@@ -439,7 +446,7 @@ def tune_parametres(variables = variables_to_vary, random = False):
                     elif class_option == 'minsim':
                         for threshold in thresholds:
                             results_list.append(
-                                main_iter(block_option, class_option, minthresh=threshold, blocking_attrs=None,
+                                main_iter(block_option, class_option, threshold, minthresh=threshold, blocking_attrs=None,
                                           func_list=func, timeout=TIMEOUT))
 
                     elif class_option == 'weightsim':
@@ -455,6 +462,16 @@ def tune_parametres(variables = variables_to_vary, random = False):
 
     return results_list
 
-results = tune_parametres()
-results_df = pd.DataFrame(results_list)
-results_df.to_csv('-'.join(sys.argv) + '.csv')
+# results = tune_parametres()
+# results_df = pd.DataFrame(results)
+# results_df.to_csv('-'.join(sys.argv) + '.csv')
+
+results = main(blocking_fn = 'soundex', classification_fn = 'dt', threshold = None, minthresh = None, weightvec = None,
+     blocking_attrs = [3, 7, 8], func_list = [comparison.bag_dist_sim_comp, comparison.jaro_winkler_comp,
+                                              comparison.jaro_winkler_comp, comparison.bag_dist_sim_comp,
+                                              comparison.bag_dist_sim_comp, comparison.bag_dist_sim_comp],
+     save = True)
+
+results_df = pd.DataFrame([results])
+results_df.to_csv('final_eval.csv')
+
